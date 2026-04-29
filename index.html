@@ -382,6 +382,18 @@
 
     <div class="section-title"><span>📝</span> Nueva novedad</div>
 
+    <!-- Fecha y Hora -->
+    <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;align-items:flex-end;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:0.45rem 1rem;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:var(--text);">
+        📅 <span id="display-fecha" style="color:var(--accent);">—</span>
+      </div>
+      <div class="form-field">
+        <label>🕐 Hora del evento</label>
+        <input type="time" id="form-hora" style="background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:0.55rem 0.7rem;font-family:'IBM Plex Mono',monospace;font-size:0.9rem;color:var(--text);outline:none;width:140px;color-scheme:dark;">
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--text);align-self:center;opacity:0.7;">← Fecha automática · Hora editable</div>
+    </div>
+
     <!-- Móvil y Personal -->
     <div class="form-grid" style="margin-bottom:1rem;">
       <div class="form-field">
@@ -574,6 +586,8 @@ function updateClock() {
   const pad = n => String(n).padStart(2,'0');
   document.getElementById('clk-local').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
   document.getElementById('clk-utc').textContent   = `UTC ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}`;
+  const df = document.getElementById('display-fecha');
+  if(df) df.textContent = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
 }
 setInterval(updateClock, 1000); updateClock();
 
