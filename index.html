@@ -113,6 +113,16 @@
   .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
     border-color: var(--accent);
   }
+  .form-field input[type="date"], .form-field input[type="time"] {
+    color-scheme: dark;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .form-field input[type="date"]::-webkit-calendar-picker-indicator,
+  .form-field input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(58%) sepia(85%) saturate(2300%) hue-rotate(346deg) brightness(102%) contrast(96%);
+    cursor: pointer;
+  }
   .form-field input::placeholder, .form-field textarea::placeholder {
     color: var(--muted);
   }
@@ -436,9 +446,15 @@
   <!-- OPERADOR -->
   <div class="form-field">
     <label>📡 Operador de Radio</label>
-    <select id="form-operador">
+    <select id="form-operador" onchange="onOperadorChange()">
       <option value="">— Seleccionar Operador —</option>
     </select>
+  </div>
+
+  <!-- OTRO OPERADOR (campo oculto) -->
+  <div class="form-field" id="otro-operador-wrap" style="display:none;">
+    <label>✏️ Nombre del Operador</label>
+    <input type="text" id="otro-operador-input" placeholder="Ingrese nombre completo...">
   </div>
 
   <!-- TURNO -->
@@ -554,24 +570,55 @@ const OPERADORES = [
   "MARTIN ROJAS","PATRICIA ACOSTA","RODRIGO FERNANDEZ","SILVIA MACIEL"
 ];
 const PERSONAL_LIST = [
-  "ANA GALARCE","CARLOS ADRIAN OJEDA","CARMEN BEATRIZ VIELLE",
-  "CLARA IRMA BOROSKY","CRISTIAN EDUARDO VARELA","DANIEL ALEJANDRO CIFUENTES",
-  "DANIELA ALEJANDRA ESPINOSA","DANIELA RUIZ","DIANA MARCELA ROMERO",
-  "DORA BEATRIZ GARCIA","EDUARDO FABIO MANSILLA","ELIANA ROMINA LEMARCHAND",
-  "FACUNDO FERREYRA","GLADIS AIDEE WEIMANN","GUSTAVO ANDRES FERNANDEZ",
-  "HECTOR HORACIO GUIÑAZU","HORACIO MIGUEL YAPURA","HUGO DANIEL HORACIO ARIAS",
-  "JOAQUIN RODRIGO FERNANDEZ","JORGE OSVALDO TREUQUIL","JOSE BARRIA MAYORGA",
-  "JOSE EDELMIRO HUENCHOR","JUAN CARLOS HERNANDEZ","JUAN GABRIEL CASTILLO",
-  "LAURA DE LOURDES LINCOMAN BARRIENTOS","LICIANA RUPERTUS CARRASCO",
-  "LORNA ROMINA MALLEA","LUIS GUILLERMO CLARK","MARCOS RODRIGO BARRIA",
-  "MARIA DEL CARMEN PAREDES","MARIA TERESA AGUILAR","MARTIN HORACIO SUAREZ",
-  "MARTIN ROJAS","NATALIA SOLEDAD DASSO","NESTOR GABRIEL LEDESMA",
-  "PAMELA VICTORIA FAUNDEZ ALMONACID","PEDRO JAVIER PASTINE ACOSTA",
-  "RAUL ALEJANDRO GUTIERREZ","RICARDO NICOLAS VIDELA MERELLES","ROCIO RIVAS",
-  "ROGELIO RAMON CORREA","ROMELIO DEL CARMEN GALLARDO SEGOVIA",
-  "ROXANA ALVARADO ALVARADO","SANDRA ELIZABET GORDILLO","SANTO ANGEL CRUZ",
-  "VANESA ELIZABETH CAMPOS CARO","VANESA LORENA DIAZ",
-  "WALTER ESTEBAN VARELA","XIMENA ANAHI GAGGINO"
+  "AGUILAR, MARIA TERESA",
+  "ALVARADO ALVARADO, ROXANA",
+  "ARIAS, HUGO DANIEL HORACIO",
+  "BARRIA, MARCOS RODRIGO",
+  "BARRIA MAYORGA, JOSE",
+  "BOROSKY, CLARA IRMA",
+  "CAMPOS CARO, VANESA ELIZABETH",
+  "CASTILLO, JUAN GABRIEL",
+  "CIFUENTES, DANIEL ALEJANDRO",
+  "CLARK, LUIS GUILLERMO",
+  "CORREA, ROGELIO RAMON",
+  "CRUZ, SANTO ANGEL",
+  "DASSO, NATALIA SOLEDAD",
+  "DIAZ, VANESA LORENA",
+  "ESPINOSA, DANIELA ALEJANDRA",
+  "FAUNDEZ ALMONACID, PAMELA VICTORIA",
+  "FERNANDEZ, GUSTAVO ANDRES",
+  "FERNANDEZ, JOAQUIN RODRIGO",
+  "FERREYRA, FACUNDO",
+  "GALARCE, ANA",
+  "GALLARDO SEGOVIA, ROMELIO DEL CARMEN",
+  "GARCIA, DORA BEATRIZ",
+  "GORDILLO, SANDRA ELIZABET",
+  "GUIÑAZU, HECTOR HORACIO",
+  "GUTIERREZ, RAUL ALEJANDRO",
+  "HERNANDEZ, JUAN CARLOS",
+  "HUENCHOR, JOSE EDELMIRO",
+  "LEDESMA, NESTOR GABRIEL",
+  "LEMARCHAND, ELIANA ROMINA",
+  "LINCOMAN BARRIENTOS, LAURA DE LOURDES",
+  "MALLEA, LORNA ROMINA",
+  "MANSILLA, EDUARDO FABIO",
+  "OJEDA, CARLOS ADRIAN",
+  "PAREDES, MARIA DEL CARMEN",
+  "PASTINE ACOSTA, PEDRO JAVIER",
+  "RIVAS, ROCIO",
+  "ROJAS, MARTIN",
+  "ROMERO, DIANA MARCELA",
+  "RUIZ, DANIELA",
+  "RUPERTUS CARRASCO, LICIANA",
+  "SUAREZ, MARTIN HORACIO",
+  "TREUQUIL, JORGE OSVALDO",
+  "VARELA, CRISTIAN EDUARDO",
+  "VARELA, WALTER ESTEBAN",
+  "VIDELA MERELES, RICARDO NICOLAS",
+  "VIELLE, CARMEN BEATRIZ",
+  "WEIMANN, GLADIS AIDEE",
+  "YAPURA, HORACIO MIGUEL",
+  "GAGGINO, XIMENA ANAHI"
 ];
 const FLOTA = [
   { key: 'M1', label: 'M1', patente: 'AF 572 XM' },
@@ -580,8 +627,9 @@ const FLOTA = [
   { key: 'M4', label: 'M4', patente: 'DOW 815'   },
   { key: 'M5', label: 'M5', patente: 'AG 959 VK' },
   { key: 'M6', label: 'M6', patente: 'AG 959 UP' },
-  { key: 'OTRO',     label: 'Otro',      patente: '' },
-  { key: 'SIN',      label: 'Sin Móvil', patente: '' },
+  { key: 'CUATRICICLO', label: 'Cuatriciclo', patente: '' },
+  { key: 'OTRO',        label: 'Otro',         patente: '' },
+  { key: 'SIN',         label: 'Sin Móvil',    patente: '' },
 ];
 
 let novedadCounter = 0;
@@ -601,6 +649,11 @@ function initForm() {
     o.value = o.textContent = op;
     selOp.appendChild(o);
   });
+  // Agregar opción "Otro/a"
+  const otraOp = document.createElement('option');
+  otraOp.value = 'OTRO';
+  otraOp.textContent = 'Otro/a';
+  selOp.appendChild(otraOp);
 
   const divT = document.getElementById('turno-selector');
   [['M','☀ Mañana'],['T','🌤 Tarde'],['N','🌙 Noche'],['A','🌃 Madrugada']].forEach(([t, lbl]) => {
@@ -622,6 +675,20 @@ function selectTurno(t) {
   document.querySelectorAll('.turno-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.turno-btn[data-turno="${t}"]`).classList.add('active');
   window._turnoActual = t;
+}
+
+function onOperadorChange() {
+  const sel = document.getElementById('form-operador');
+  const wrap = document.getElementById('otro-operador-wrap');
+  const input = document.getElementById('otro-operador-input');
+  
+  if (sel.value === 'OTRO') {
+    wrap.style.display = 'block';
+    input.focus();
+  } else {
+    wrap.style.display = 'none';
+    input.value = '';
+  }
 }
 
 function updateClock() {
@@ -757,6 +824,10 @@ function onMovilSelChange(mid) {
     patWrap.style.display  = 'none';
     otroWrap.style.display = 'none';
     tabLabel.textContent   = 'Sin Móvil';
+  } else if (key === 'CUATRICICLO') {
+    patWrap.style.display  = 'none';
+    otroWrap.style.display = 'none';
+    tabLabel.textContent   = 'Cuatriciclo';
   } else if (key === 'OTRO') {
     patWrap.style.display  = 'none';
     otroWrap.style.display = 'block';
@@ -814,8 +885,16 @@ function clearMovilPersonal(mid) {
 function guardarNovedades() {
   const fecha    = document.getElementById('form-fecha').value;
   const hora     = document.getElementById('form-hora').value;
-  const operador = document.getElementById('form-operador').value || 'Sin asignar';
+  const opSel    = document.getElementById('form-operador').value;
   const turno    = window._turnoActual || 'M';
+  
+  // Si seleccionó "Otro/a", tomar el valor del input
+  let operador;
+  if (opSel === 'OTRO') {
+    operador = document.getElementById('otro-operador-input').value.trim() || 'Otro/a (sin nombre)';
+  } else {
+    operador = opSel || 'Sin asignar';
+  }
 
   if (!fecha || !hora) {
     showToast('⚠ Fecha y hora requeridas', true);
@@ -844,6 +923,8 @@ function guardarNovedades() {
 
       if (key === 'SIN') {
         movilesData.push({ ident: 'Sin Móvil', pat: '', personal });
+      } else if (key === 'CUATRICICLO') {
+        movilesData.push({ ident: 'Cuatriciclo', pat: '', personal });
       } else if (key === 'OTRO') {
         const desc = document.getElementById(`movil-otro-${mid}`)?.value.trim() || 'Otro';
         movilesData.push({ ident: desc, pat: '', personal });
@@ -867,6 +948,8 @@ function guardarNovedades() {
   novedadCounter = 0;
   movilCounterGlobal = 0;
   document.getElementById('form-operador').value = '';
+  document.getElementById('otro-operador-wrap').style.display = 'none';
+  document.getElementById('otro-operador-input').value = '';
   
   const ahora = new Date();
   const pad = n => String(n).padStart(2,'0');
@@ -887,8 +970,9 @@ function formatMoviles(moviles) {
     let s = m.ident;
     if (m.pat) s += ` (${m.pat})`;
     if (m.personal && m.personal.length) {
-      const apellidos = m.personal.map(p => p.split(' ').slice(-1)[0]).join(', ');
-      s += `: ${apellidos}`;
+      // Mostrar nombre completo para evitar ambigüedad
+      const nombres = m.personal.join(', ');
+      s += `: ${nombres}`;
     }
     return s;
   }).join(' | ');
